@@ -10,29 +10,85 @@
 
 const char characters[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789&~#{}()[]-|_@=+*$?,.;/:!<>\\\"'";
 
+int strtopint(char *str)
+{
+    int i;
+    if (sscanf(str, "%d", &i) == 1 && i > 0)
+    {
+        return i;
+    }
+    else
+    {
+        fprintf(stderr, "error: expected positive integer got '%s'\n", str);
+        exit(EXIT_FAILURE);
+    }
+}
+
 int main(int argc, char *argv[])
 {
+    int nbPasswords = DEFAULT_NB_PASSWORDS, passwordSize = DEFAULT_PASSWORD_SIZE;
+    char *fileName = DEFAULT_FILE_NAME;
+    int i = 0;
+    while (++i < argc)
+    {
+        char *arg = argv[i];
+        if (arg[0] == '-' && arg[1] != '\0')
+        {
+            if (arg[2] == '\0')
+            {
+                switch (arg[1])
+                {
+                case 'n':
+                    nbPasswords = strtopint(argv[++i]);
+                    break;
+
+                case 's':
+                    passwordSize = strtopint(argv[++i]);
+                    break;
+
+                case 'o':
+                    fileName = argv[++i];
+                    break;
+
+                default:
+                    fprintf(stderr, "error: unrecognized command line option '%s'\n", arg);
+                    exit(EXIT_FAILURE);
+                    break;
+                }
+            }
+            else
+            {
+                fprintf(stderr, "error: unrecognized command line option '%s'\n", arg);
+                exit(EXIT_FAILURE);
+            }
+        }
+        else
+        {
+            fprintf(stderr, "error: expected command line option got '%s'\n", arg);
+            exit(EXIT_FAILURE);
+        }
+    }
     srand(time(NULL));
 
     const size_t nbChars = strlen(characters);
 
-    FILE *fptr = fopen(DEFAULT_FILE_NAME, "w");
+    FILE *fptr = fopen(fileName, "w");
 
     fprintf(fptr, "random passwords\n");
-    fprintf(fptr, "number : %d passwords\n", DEFAULT_NB_PASSWORDS);
-    fprintf(fptr, "size : %d characters\n", DEFAULT_PASSWORD_SIZE);
+    fprintf(fptr, "number : %d passwords\n", nbPasswords);
+    fprintf(fptr, "size : %d characters\n", passwordSize);
     fprintf(fptr, "character pool :\n%s\n", characters);
     fprintf(fptr, "\n");
 
     int n = 0;
 
-    while (n < DEFAULT_NB_PASSWORDS)
+    while (n < nbPasswords)
     {
-        char password[DEFAULT_PASSWORD_SIZE + 1];
-        password[DEFAULT_PASSWORD_SIZE] = '\0';
+        char password[passwordSize + 1];
+        password[passwordSize] = '\0';
         int lowercase = 0, uppercase = 0, number = 0, special = 0;
 
-        for (size_t i = 0; i < DEFAULT_PASSWORD_SIZE; i++)
+        for (size_t i = 0; i < passwordSize; i++)
         {
             size_t c = rand() % nbChars;
             password[i] = characters[c];
